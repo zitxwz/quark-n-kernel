@@ -1,0 +1,484 @@
+/dts-v1/;
+#include "sun50i-h5.dtsi"
+#include "arm/allwinner/sunxi-common-regulators.dtsi"
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/pinctrl/sun4i-a10.h>
+#include <dt-bindings/thermal/thermal.h>
+
+/ {
+    model = "Quark-n";
+	compatible = "friendlyelec,nanopi-neo-core2","quark-n", "allwinner,sun50i-h5";
+
+    aliases {
+        serial0 = &uart0;
+        serial1 = &uart1;
+        serial2 = &uart2;
+        serial3 = &uart3;
+        i2c0 = &i2c0;
+        i2c1 = &i2c1;
+        i2c2 = &i2c2;
+        spi0 = &spi0;
+        spi1 = &spi1;
+        pwm0 = &pwm;
+        mmc0 = &mmc0;
+        mmc2 = &mmc2;
+        ethernet0 = &emac;
+        i2s0 = &i2s0;
+        pcm5102a = &pcm5102a;
+        panel = &panel;
+	ir = &ir;
+    };
+
+    chosen {
+        stdout-path = "serial0:115200n8";
+    };
+
+    connector {
+        compatible = "hdmi-connector";
+        type = "a";
+
+        port {
+            hdmi_con_in: endpoint {
+                remote-endpoint = <&hdmi_out_con>;
+            };
+        };
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        pinctrl-names = "default";
+        pinctrl-0 = <&leds_quark_n>,<&leds_r_quark_n>,<&leds_r_quark_n_user>,<&leds_quark_n_user>;
+
+        pwr {
+            label = "quark-n_system_pwr";
+            gpios = <&r_pio 0 10 GPIO_ACTIVE_HIGH>;
+            default-state = "on";
+        };
+
+        status {
+            label = "quark-n_system_status";
+            gpios = <&pio 0 10 GPIO_ACTIVE_HIGH>;
+            linux,default-trigger = "heartbeat";
+        };
+        user_led0:user_led1@0 {
+            label = "quark-n_user_led0";
+            gpio = <&r_pio 0 7 GPIO_ACTIVE_HIGH>;
+            default-state = "no";
+        };
+        user_led1:user_led2@1 {
+            label = "quark-n_user_led1";
+            gpio = <&pio 0 16 GPIO_ACTIVE_LOW>;
+            default-state = "no";
+        };
+    };
+
+    r-gpio-keys {
+        compatible = "gpio-keys";
+
+        k1@0 {
+            label = "k1";
+            linux,code = <KEY_POWER>;
+            gpios = <&r_pio 0 3 GPIO_ACTIVE_LOW>;
+        };
+    };
+
+    reg_vcc1v2: vcc1v2 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc1v2";
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
+		regulator-boot-on;
+		vin-supply = <&reg_vcc5v0>;
+		gpio = <&r_pio 0 8 GPIO_ACTIVE_HIGH>; /* PL8 */
+		enable-active-high;
+	};
+
+	reg_vcc_dram: vcc-dram {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc-dram";
+		regulator-min-microvolt = <1500000>;
+		regulator-max-microvolt = <1500000>;
+		regulator-always-on;
+		regulator-boot-on;
+		vin-supply = <&reg_vcc5v0>;
+		gpio = <&r_pio 0 9 GPIO_ACTIVE_HIGH>; /* PL9 */
+		enable-active-high;
+	};
+
+	reg_vdd_cpux: vdd-cpux {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd-cpux-en";
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
+		regulator-boot-on;
+		vin-supply = <&reg_vcc5v0>;
+		gpio = <&r_pio 0 8 GPIO_ACTIVE_HIGH>; /* PL8 */
+		enable-active-high;
+	};
+
+    vdd_cpux: gpio-regulator {
+		compatible = "regulator-gpio";
+
+		regulator-name = "vdd-cpux";
+		regulator-type = "voltage";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <940000>;
+		regulator-max-microvolt = <1400000>;
+		regulator-ramp-delay = <200>; /* 4ms */
+
+		gpios = <&r_pio 0 6 GPIO_ACTIVE_HIGH>;
+		gpios-states = <0x1>;
+		states = <1100000 0x0
+			  1300000 0x1>;
+	};
+
+    pcm5102a: pcm5102a-codec {
+        #sound-dai-cells = <0>;
+        compatible = "ti,pcm5102a";
+        status = "disabled";
+    };
+
+    sound_i2s {
+        compatible = "simple-audio-card";
+        simple-audio-card,name = "I2S-master";
+        simple-audio-card,mclk-fs = <256>;
+        simple-audio-card,format = "i2s";
+        status = "okay";
+
+        simple-audio-card,cpu {
+            sound-dai = <&i2s0>;
+        };
+
+        simple-audio-card,codec {
+            sound-dai = <&pcm5102a>;
+        };
+    };
+};
+
+&cpu0 {
+	operating-points = <
+		/* kHz	  uV */
+		1248000 1280000
+		1008000 1180000
+		816000  1100000
+		624000  1040000
+		480000  1040000
+		>;
+	#cooling-cells = <2>;
+	cooling-min-level = <0>;
+	cooling-max-level = <4>;
+	cpu0-supply = <&vdd_cpux>;
+};
+
+&cpu_thermal {
+	trips {
+		cpu_warm: cpu_warm {
+			temperature = <60000>;
+			hysteresis = <2000>;
+			type = "passive";
+		};
+		cpu_hot: cpu_hot {
+			temperature = <70000>;
+			hysteresis = <2000>;
+			type = "passive";
+		};
+		cpu_very_hot: cpu_very_hot {
+			temperature = <80000>;
+			hysteresis = <2000>;
+			type = "passive";
+		};
+		cpu_alert_hot: cpu_alert_hot {
+			temperature = <90000>;
+			hysteresis = <2000>;
+			type = "passive";
+		};
+		cpu_crit: cpu_crit {
+			temperature = <100000>;
+			hysteresis = <2000>;
+			type = "critical";
+		};
+	};
+
+	cooling-maps {
+		cpu_warm_limit_cpu {
+			trip = <&cpu_warm>;
+			cooling-device = <&cpu0 THERMAL_NO_LIMIT 1>;
+		};
+		cpu_hot_limit_cpu {
+			trip = <&cpu_hot>;
+			cooling-device = <&cpu0 THERMAL_NO_LIMIT 2>;
+		};
+		cpu_very_hot_limit_cpu {
+			trip = <&cpu_very_hot>;
+			cooling-device = <&cpu0 THERMAL_NO_LIMIT 3>;
+		};
+		cpu_alert_hot_limit_cpu {
+			trip = <&cpu_alert_hot>;
+			cooling-device = <&cpu0 4 THERMAL_NO_LIMIT>;
+		};
+	};
+};
+
+&ehci0 {
+    status = "okay";
+};
+
+&ohci0 {
+    status = "okay";
+};
+
+&ehci1 {
+    status = "okay";
+};
+
+&ohci1 {
+    status = "okay";
+};
+
+&ehci2 {
+    status = "okay";
+};
+
+&ohci2 {
+    status = "okay";
+};
+
+&ehci3 {
+    status = "okay";
+};
+
+&ohci3 {
+    status = "okay";
+};
+
+&mmc0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&mmc0_pins>, <&mmc0_cd_pin>;
+    cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
+    vmmc-supply = <&reg_vcc3v3>;
+    bus-width = <4>;
+    non-removable;
+    boot_device = <0>;
+    status = "okay";
+};
+
+&mmc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc2_8bit_pins>;
+	vmmc-supply = <&reg_vcc3v3>;
+	bus-width = <8>;
+	non-removable;
+	cap-mmc-hw-reset;
+	boot_device = <0>;
+	status = "okay";
+};
+
+&mmc2_8bit_pins {
+	/* Increase drive strength for DDR modes */
+	drive-strength = <40>;
+	/* eMMC is missing pull-ups */
+	bias-pull-up;
+};
+
+&pio {
+
+    leds_quark_n: led_pins@0 {
+        pins = "PA10";
+        function = "gpio_out";
+    };
+
+    leds_quark_n_user: led_pins@1 {
+        pins = "PA16";
+        function = "gpio_out";
+    };
+
+    spi0_cs_pins: spi0_cs_pins {
+        pins = "PA6";
+        function = "gpio_out";
+    };
+
+    mmc0_cd_pin: mmc0_cd_pin@0 {
+        pins = "PF6";
+        function = "gpio_in";
+        bias-pull-up;
+    };
+
+    pwm0_pins: pwm0 {
+        pins = "PA5";
+        function = "pwm0";
+    };
+};
+
+&r_pio {
+
+    leds_r_quark_n: led_pins@0 {
+        pins = "PL10";
+        function = "gpio_out";
+    };
+
+    leds_r_quark_n_user: led_pins@1 {
+        pins = "PL7";
+        function = "gpio_out";
+    };
+
+};
+
+&uart0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart0_pa_pins>;
+    status = "okay";
+};
+
+&uart1 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart1_pins>;
+    status = "disabled";
+};
+
+&uart2 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart2_pins>;
+    status = "disabled";
+};
+
+&uart3 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&uart3_pins>, <&uart3_rts_cts_pins>;
+    status = "disabled";
+};
+
+&i2c0 {
+    status = "disabled";
+    vmmc-supply = <&reg_vcc3v3>;
+    clock-frequency = <400000>;
+    
+    mpu6050@68 {
+        compatible = "invensense,mpu6050";
+        reg = <0x68>;
+    };
+};
+
+&i2c1 {
+    status = "disabled";
+};
+
+&i2c2 {
+    status = "disabled";
+};
+
+&spi0 {
+    #address-cells = <1>;
+    #size-cells = <0>;
+    status = "okay";
+    pinctrl-names = "default";
+    pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
+    cs-gpios = <&pio 2 3 GPIO_ACTIVE_HIGH>, <&pio 0 6 GPIO_ACTIVE_HIGH>;
+
+    panel: panel@0 {
+        compatible = "panel-mipi-dbi-spi";
+        // spi-cpol;
+		// spi-cpha;
+        write-only;
+        reg = <0>;
+        fps = <60>;
+        buswidth = <8>;
+        debug = <0x00>;
+        rotation = <90>;
+        width-mm = <0>;
+        height-mm = <0>;
+        spi-max-frequency = <62500000>;
+        dc-gpios = <&pio 0 0 GPIO_ACTIVE_HIGH>;
+        reset-gpios  = <&pio 0 1 GPIO_ACTIVE_HIGH>;
+        timing: panel-timing {
+            hactive = <240>; // 横向分辨率
+            vactive = <135>; // 纵向分辨率
+            hback-porch = <40>;
+            vback-porch = <53>;
+            clock-frequency = <0>;
+            hfront-porch = <0>;
+            hsync-len = <0>;
+            vfront-porch = <0>;
+            vsync-len = <0>;
+        };
+    };
+};
+
+&spi1 {
+    status = "disabled";
+};
+
+&reg_usb0_vbus {
+    gpio = <&r_pio 0 2 GPIO_ACTIVE_HIGH>; /* PL2 */
+    status = "okay";
+};
+
+&usb_otg {
+    dr_mode = "otg";
+    status = "disabled";
+};
+
+&usbphy {
+    usb0_id_det-gpios = <&pio 6 12 GPIO_ACTIVE_HIGH>; /* PG12 */
+    usb0_vbus-supply = <&reg_usb0_vbus>;
+    status = "okay";
+};
+
+&de {
+    status = "okay";
+};
+
+&hdmi {
+    status = "disabled";
+};
+
+&hdmi_out {
+    hdmi_out_con: endpoint {
+        remote-endpoint = <&hdmi_con_in>;
+    };
+};
+
+
+&tcon0 {
+    status = "okay";
+};
+
+&mixer0 {
+    status = "okay";
+};
+
+&i2s0 {
+    sound-dai = <&pcm5102a>;
+    status = "disabled";
+};
+
+&i2s2 {
+    status = "disabled";
+};
+
+&emac {
+    local-mac-address = [ 00 00 00 00 00 00 ];  
+};
+
+&codec {
+    allwinner,audio-routing =
+        "Line Out", "LINEOUT",
+        "MIC1", "Mic",
+        "Mic",  "MBIAS";
+    status = "okay";
+};
+
+&pwm {
+    pinctrl-names = "default";
+    pinctrl-0 = <&pwm0_pins>;
+    status = "disabled";
+};
+
+&ir {
+    pinctrl-names = "default";
+    pinctrl-0 = <&r_ir_rx_pin>;
+    status = "disabled";
+};
