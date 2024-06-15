@@ -285,6 +285,11 @@
 };
 
 &pio {
+	vcc-pa-supply = <&reg_vcc3v3>;
+	vcc-pc-supply = <&reg_vcc3v3>;
+	vcc-pe-supply = <&reg_vcc3v3>;
+	vcc-pf-supply = <&reg_vcc3v3>;
+	vcc-pg-supply = <&reg_vcc3v3>;
 
     leds_quark_n: led_pins@0 {
         pins = "PA10";
@@ -314,6 +319,7 @@
 };
 
 &r_pio {
+    vcc-pl-supply = <&reg_vcc3v3>;
 
     leds_r_quark_n: led_pins@0 {
         pins = "PL10";
