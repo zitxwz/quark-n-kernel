@@ -358,10 +358,11 @@
 };
 
 &i2c0 {
-    status = "disabled";
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c0_pins>;
+    status = "okay";
     vmmc-supply = <&reg_vcc3v3>;
-    clock-frequency = <400000>;
-    
+    clock-frequency = <200000>;
     mpu6050@68 {
         compatible = "invensense,mpu6050";
         reg = <0x68>;
