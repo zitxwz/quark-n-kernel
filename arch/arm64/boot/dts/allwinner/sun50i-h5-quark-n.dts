@@ -32,7 +32,7 @@
         ethernet0 = &emac;
         i2s0 = &i2s0;
         pcm5102a = &pcm5102a;
-        panel = &panel;
+        panel0 = &panel0; 
 	ir = &ir;
     };
 
@@ -155,7 +155,7 @@
         simple-audio-card,name = "I2S-master";
         simple-audio-card,mclk-fs = <256>;
         simple-audio-card,format = "i2s";
-        status = "okay";
+        status = "disabled";
 
         simple-audio-card,cpu {
             sound-dai = <&i2s0>;
@@ -269,7 +269,6 @@
     cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
     vmmc-supply = <&reg_vcc3v3>;
     bus-width = <4>;
-    non-removable;
     boot_device = <0>;
     status = "okay";
 };
@@ -406,7 +405,7 @@
     pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
     cs-gpios = <&pio 2 3 GPIO_ACTIVE_HIGH>, <&pio 0 6 GPIO_ACTIVE_HIGH>;
 
-    panel: panel@0 {
+    panel0: panel@0 {
         compatible = "panel-mipi-dbi-spi";
         // spi-cpol;
 		// spi-cpha;
@@ -418,6 +417,7 @@
         rotation = <90>;
         width-mm = <0>;
         height-mm = <0>;
+        status = "okay";
         spi-max-frequency = <62500000>;
         dc-gpios = <&pio 0 0 GPIO_ACTIVE_HIGH>;
         reset-gpios  = <&pio 0 1 GPIO_ACTIVE_HIGH>;
@@ -475,7 +475,7 @@
 };
 
 &mixer0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &i2s0 {
