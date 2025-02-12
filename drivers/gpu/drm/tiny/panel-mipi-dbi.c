@@ -454,5 +454,5 @@ module_spi_driver(panel_mipi_dbi_spi_driver);
 
 MODULE_DESCRIPTION("MIPI DBI compatible display panel driver");
 MODULE_AUTHOR("Noralf Trønnes");
-MODULE_FIRMWARE("/lib/firmware/panel-mipi-dbi-spi.bin")
+MODULE_FIRMWARE("panel-mipi-dbi-spi.bin");
 MODULE_LICENSE("GPL");
