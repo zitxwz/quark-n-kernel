@@ -257,20 +257,27 @@
 
 &mmc0 {
     pinctrl-names = "default";
+    linux,phandle = <0x20>;
     pinctrl-0 = <&mmc0_pins>, <&mmc0_cd_pin>;
     cd-gpios = <&pio 5 6 GPIO_ACTIVE_LOW>; /* PF6 */
     vmmc-supply = <&reg_vcc3v3>;
     bus-width = <4>;
-    non-removable;
     boot_device = <0>;
+    removable = <1>;
+    // cd-inverted;
+    cap-sd-highspeed;
+    mmc-driver-type = <0>;
     status = "okay";
 };
 
 &mmc2 {
+    linux,phandle = <0x10>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&mmc2_8bit_pins>;
 	vmmc-supply = <&reg_vcc3v3>;
+    clock-frequency = <52000000>;
 	bus-width = <8>;
+    mmc-driver-type = <1>;
 	non-removable;
 	cap-mmc-hw-reset;
 	boot_device = <0>;
