@@ -7,8 +7,8 @@
 #include <dt-bindings/thermal/thermal.h>
 
 / {
-    model = "Quark-n";
-	compatible = "friendlyelec,nanopi-neo-core2","quark-n", "allwinner,sun50i-h5";
+    model = "Quark Module N";
+	compatible ="quark-n", "allwinner,sun50i-h5";
 
     aliases {
         serial0 = &uart0;
@@ -366,13 +366,16 @@
 
 &i2c0 {
     pinctrl-names = "default";
-    pinctrl-0 = <&i2c0_pins>;
     status = "okay";
+    #size-cells = <0>;
+    #address-cells = <1>;
+    pinctrl-0 = <&i2c0_pins>;
     vmmc-supply = <&reg_vcc3v3>;
-    clock-frequency = <200000>;
+    clock-frequency = <100000>;
     mpu6050@68 {
         compatible = "invensense,mpu6050";
         reg = <0x68>;
+        status = "okay";
     };
 };
 
@@ -495,4 +498,16 @@
     pinctrl-names = "default";
     pinctrl-0 = <&r_ir_rx_pin>;
     status = "disabled";
+};
+
+&i2c2_pins {
+   bias-pull-up;
+};
+
+&i2c1_pins {
+   bias-pull-up;
+};
+
+&i2c0_pins {
+   bias-pull-up;
 };
