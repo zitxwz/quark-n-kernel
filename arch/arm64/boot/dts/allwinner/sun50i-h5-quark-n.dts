@@ -1,5 +1,6 @@
 /dts-v1/;
 #include "sun50i-h5.dtsi"
+#include "sun50i-h5-cpu-opp.dtsi"
 #include "arm/allwinner/sunxi-common-regulators.dtsi"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
@@ -27,7 +28,7 @@
         i2s0 = &i2s0;
         pcm5102a = &pcm5102a;
         panel = &panel;
-	ir = &ir;
+	    ir = &ir;
     };
 
     chosen {
@@ -36,6 +37,7 @@
 
     connector {
         compatible = "hdmi-connector";
+        status = "disabled";
         type = "a";
 
         port {
@@ -83,58 +85,34 @@
         };
     };
 
-    reg_vcc1v2: vcc1v2 {
+
+	reg_gmac_3v3: gmac-3v3 {
 		compatible = "regulator-fixed";
-		regulator-name = "vcc1v2";
-		regulator-min-microvolt = <1200000>;
-		regulator-max-microvolt = <1200000>;
-		regulator-always-on;
-		regulator-boot-on;
-		vin-supply = <&reg_vcc5v0>;
-		gpio = <&r_pio 0 8 GPIO_ACTIVE_HIGH>; /* PL8 */
+		regulator-name = "gmac-3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		startup-delay-us = <100000>;
 		enable-active-high;
+		gpio = <&pio 3 6 GPIO_ACTIVE_HIGH>;
 	};
 
-	reg_vcc_dram: vcc-dram {
+	reg_vcc3v3: vcc3v3 {
 		compatible = "regulator-fixed";
-		regulator-name = "vcc-dram";
-		regulator-min-microvolt = <1500000>;
-		regulator-max-microvolt = <1500000>;
-		regulator-always-on;
-		regulator-boot-on;
-		vin-supply = <&reg_vcc5v0>;
-		gpio = <&r_pio 0 9 GPIO_ACTIVE_HIGH>; /* PL9 */
-		enable-active-high;
+		regulator-name = "vcc3v3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
 	};
 
-	reg_vdd_cpux: vdd-cpux {
-		compatible = "regulator-fixed";
-		regulator-name = "vdd-cpux-en";
-		regulator-min-microvolt = <1200000>;
-		regulator-max-microvolt = <1200000>;
-		regulator-always-on;
-		regulator-boot-on;
-		vin-supply = <&reg_vcc5v0>;
-		gpio = <&r_pio 0 8 GPIO_ACTIVE_HIGH>; /* PL8 */
-		enable-active-high;
-	};
-
-    vdd_cpux: gpio-regulator {
-		compatible = "regulator-gpio";
-
-		regulator-name = "vdd-cpux";
-		regulator-type = "voltage";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <940000>;
-		regulator-max-microvolt = <1400000>;
-		regulator-ramp-delay = <200>; /* 4ms */
-
-		gpios = <&r_pio 0 6 GPIO_ACTIVE_HIGH>;
-		gpios-states = <0x1>;
-		states = <1100000 0x0
-			  1300000 0x1>;
-	};
+    reg_vdd_cpux: vdd_cpux {
+        compatible = "regulator-gpio";
+        regulator-name = "vdd_cpux";
+        regulator-min-microvolt = <1100000>;
+        regulator-max-microvolt = <1100000>;
+        gpios = <&r_pio 0 8 GPIO_ACTIVE_HIGH>; 
+        states = <1100000 0x1>;
+        regulator-always-on;
+        regulator-boot-on;
+    };
 
     pcm5102a: pcm5102a-codec {
         #sound-dai-cells = <0>;
@@ -159,23 +137,101 @@
     };
 };
 
+&cpu_opp_table{
+    compatible = "operating-points-v2";
+    opp-shared;
+
+    opp-408000000 {
+        opp-hz = /bits/ 64 <408000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-648000000 {
+        opp-hz = /bits/ 64 <648000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-816000000 {
+        opp-hz = /bits/ 64 <816000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-912000000 {
+        opp-hz = /bits/ 64 <912000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-960000000 {
+        opp-hz = /bits/ 64 <960000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-1008000000 {
+        opp-hz = /bits/ 64 <1008000000>;
+        opp-microvolt = <1100000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+    opp-1056000000 {
+        status = "disabled";
+        opp-hz = /bits/ 64 <1056000000>;
+        opp-microvolt = <1240000 1240000 1310000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-1104000000 {
+        status = "disabled";
+        opp-hz = /bits/ 64 <1104000000>;
+        opp-microvolt = <1260000 1260000 1310000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+    opp-1152000000 {
+        status = "disabled";
+        opp-hz = /bits/ 64 <1152000000>;
+        opp-microvolt = <1300000 1300000 1310000>;
+        clock-latency-ns = <244144>; /* 8 32k periods */
+    };
+
+};
+
 &cpu0 {
-	operating-points = <
-		/* kHz	  uV */
-		1248000 1280000
-		1008000 1180000
-		816000  1100000
-		624000  1040000
-		480000  1040000
-		>;
-	#cooling-cells = <2>;
-	cooling-min-level = <0>;
-	cooling-max-level = <4>;
-	cpu0-supply = <&vdd_cpux>;
+    clock-names = "cpu";
+    clocks = <&ccu CLK_CPUX>;
+    cpu-supply = <&reg_vdd_cpux>;
+    operating-points-v2 = <&cpu_opp_table>;
+};
+
+&cpu1 {
+    clock-names = "cpu";
+    clocks = <&ccu CLK_CPUX>;
+    cpu-supply = <&reg_vdd_cpux>;
+    operating-points-v2 = <&cpu_opp_table>;
+};
+
+&cpu2 {
+    clock-names = "cpu";
+    clocks = <&ccu CLK_CPUX>;
+    cpu-supply = <&reg_vdd_cpux>;
+    operating-points-v2 = <&cpu_opp_table>;
+};
+
+&cpu3 {
+    clock-names = "cpu";
+    clocks = <&ccu CLK_CPUX>;
+    cpu-supply = <&reg_vdd_cpux>;
+    operating-points-v2 = <&cpu_opp_table>;
 };
 
 &cpu_thermal {
-	trips {
+    polling-delay = <1000>;        /* 常温：1000ms(1s)轮询一次 */
+    polling-delay-passive = <200>; /* 触发passive温控后：200ms快速轮询 */
+    thermal-sensors = <&ths 0>;
+    trips {
 		cpu_warm: cpu_warm {
 			temperature = <60000>;
 			hysteresis = <2000>;
@@ -191,34 +247,34 @@
 			hysteresis = <2000>;
 			type = "passive";
 		};
-		cpu_alert_hot: cpu_alert_hot {
-			temperature = <90000>;
-			hysteresis = <2000>;
-			type = "passive";
-		};
 		cpu_crit: cpu_crit {
-			temperature = <100000>;
+			temperature = <90000>; /* 90°C */
 			hysteresis = <2000>;
-			type = "critical";
+			type = "critical";     /* 内核会立刻执行硬件紧急关机 */
 		};
 	};
 
 	cooling-maps {
 		cpu_warm_limit_cpu {
 			trip = <&cpu_warm>;
-			cooling-device = <&cpu0 THERMAL_NO_LIMIT 1>;
+			cooling-device = <&cpu0 3 THERMAL_NO_LIMIT>,
+                             <&cpu1 3 THERMAL_NO_LIMIT>,
+                             <&cpu2 3 THERMAL_NO_LIMIT>,
+                             <&cpu3 3 THERMAL_NO_LIMIT>;
 		};
 		cpu_hot_limit_cpu {
 			trip = <&cpu_hot>;
-			cooling-device = <&cpu0 THERMAL_NO_LIMIT 2>;
+			cooling-device = <&cpu0 4 THERMAL_NO_LIMIT>,
+                             <&cpu1 4 THERMAL_NO_LIMIT>,
+                             <&cpu2 4 THERMAL_NO_LIMIT>,
+                             <&cpu3 4 THERMAL_NO_LIMIT>;
 		};
 		cpu_very_hot_limit_cpu {
 			trip = <&cpu_very_hot>;
-			cooling-device = <&cpu0 THERMAL_NO_LIMIT 3>;
-		};
-		cpu_alert_hot_limit_cpu {
-			trip = <&cpu_alert_hot>;
-			cooling-device = <&cpu0 4 THERMAL_NO_LIMIT>;
+			cooling-device = <&cpu0 5 THERMAL_NO_LIMIT>,
+                             <&cpu1 5 THERMAL_NO_LIMIT>,
+                             <&cpu2 5 THERMAL_NO_LIMIT>,
+                             <&cpu3 5 THERMAL_NO_LIMIT>;
 		};
 	};
 };
@@ -240,19 +296,19 @@
 };
 
 &ehci2 {
-    status = "okay";
+    status = "disabled";
 };
 
 &ohci2 {
-    status = "okay";
+    status = "disabled";
 };
 
 &ehci3 {
-    status = "okay";
+    status = "disabled";
 };
 
 &ohci3 {
-    status = "okay";
+    status = "disabled";
 };
 
 &mmc0 {
@@ -445,7 +501,7 @@
 };
 
 &de {
-    status = "okay";
+    status = "disabled";
 };
 
 &hdmi {
@@ -460,11 +516,11 @@
 
 
 &tcon0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &mixer0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &i2s0 {
