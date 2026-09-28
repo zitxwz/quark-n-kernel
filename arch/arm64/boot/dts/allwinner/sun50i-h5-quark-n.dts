@@ -77,10 +77,14 @@
 
     r-gpio-keys {
         compatible = "gpio-keys";
+        pinctrl-names = "default";
+        pinctrl-0 = <&r_key_pins>;
+        autorepeat;
 
         k1@0 {
             label = "k1";
-            linux,code = <KEY_POWER>;
+            linux,code = <KEY_PROG1>;
+            debounce-interval = <10>; 
             gpios = <&r_pio 0 3 GPIO_ACTIVE_LOW>;
         };
     };
@@ -393,6 +397,11 @@
         pins = "PL7";
         function = "gpio_out";
     };
+    r_key_pins: r-key-pins {
+        pins = "PL3";
+        function = "gpio_in";
+        bias-pull-up; /* 关键：使能内部上拉电阻 */
+    };
 
 };
 
@@ -450,6 +459,8 @@
     pinctrl-names = "default";
     pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
     cs-gpios = <&pio 2 3 GPIO_ACTIVE_HIGH>, <&pio 0 6 GPIO_ACTIVE_HIGH>;
+    spi-cpol;
+    spi-cpha;
 
     panel: panel@0 {
         compatible = "panel-mipi-dbi-spi";
