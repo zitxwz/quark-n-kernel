@@ -85,7 +85,7 @@
             label = "k1";
             linux,code = <KEY_PROG1>;
             debounce-interval = <10>; 
-            gpios = <&r_pio 0 3 GPIO_ACTIVE_LOW>;
+            gpios = <&r_pio 0 3 GPIO_ACTIVE_HIGH>;
         };
     };
 
@@ -129,7 +129,7 @@
         simple-audio-card,name = "I2S-master";
         simple-audio-card,mclk-fs = <256>;
         simple-audio-card,format = "i2s";
-        status = "okay";
+        status = "disabled";
 
         simple-audio-card,cpu {
             sound-dai = <&i2s0>;
@@ -138,6 +138,23 @@
         simple-audio-card,codec {
             sound-dai = <&pcm5102a>;
         };
+    };
+
+    gpio_pwm:pwm-gpio {
+        compatible = "pwm-gpio";
+        #pwm-cells = <3>;
+        #cooling-cells = <2>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&gpiog11_pwm_pins>;
+        gpios = <&pio 6 11 GPIO_ACTIVE_LOW>; 
+        status = "okay";
+    };
+        fan: pwm-fan {
+        compatible = "pwm-fan";
+        pwms = <&gpio_pwm 0 25000000 0>; 
+        #cooling-cells = <2>;
+        cooling-levels = <191 127 63 0>;
+        status = "okay";
     };
 };
 
@@ -237,49 +254,65 @@
     thermal-sensors = <&ths 0>;
     trips {
 		cpu_warm: cpu_warm {
-			temperature = <60000>;
-			hysteresis = <2000>;
-			type = "passive";
-		};
-		cpu_hot: cpu_hot {
-			temperature = <70000>;
-			hysteresis = <2000>;
-			type = "passive";
-		};
-		cpu_very_hot: cpu_very_hot {
-			temperature = <80000>;
-			hysteresis = <2000>;
-			type = "passive";
-		};
-		cpu_crit: cpu_crit {
-			temperature = <90000>; /* 90°C */
-			hysteresis = <2000>;
-			type = "critical";     /* 内核会立刻执行硬件紧急关机 */
-		};
+				temperature = <55000>;
+				hysteresis = <5000>;
+				type = "passive";
+			};
+			cpu_hot: cpu_hot {
+				temperature = <62000>;
+				hysteresis = <5000>;
+				type = "passive";
+			};
+			cpu_very_hot: cpu_very_hot {
+				temperature = <70000>;
+				hysteresis = <5000>;
+				type = "passive";
+			};
+			cpu_extreme: cpu_extreme {
+				temperature = <76000>;
+				hysteresis = <5000>;
+				type = "passive";
+			};
+			cpu_crit: cpu_crit {
+				temperature = <80000>; /* 90℃ 紧急关机 */
+				hysteresis = <0>;
+				type = "critical";
+			};
 	};
 
 	cooling-maps {
 		cpu_warm_limit_cpu {
 			trip = <&cpu_warm>;
-			cooling-device = <&cpu0 3 THERMAL_NO_LIMIT>,
+			cooling-device = <&fan 1 1>,
+                             <&cpu0 3 THERMAL_NO_LIMIT>,
                              <&cpu1 3 THERMAL_NO_LIMIT>,
                              <&cpu2 3 THERMAL_NO_LIMIT>,
                              <&cpu3 3 THERMAL_NO_LIMIT>;
 		};
 		cpu_hot_limit_cpu {
 			trip = <&cpu_hot>;
-			cooling-device = <&cpu0 4 THERMAL_NO_LIMIT>,
+			cooling-device = <&fan 2 2>,
+                             <&cpu0 4 THERMAL_NO_LIMIT>,
                              <&cpu1 4 THERMAL_NO_LIMIT>,
                              <&cpu2 4 THERMAL_NO_LIMIT>,
                              <&cpu3 4 THERMAL_NO_LIMIT>;
 		};
 		cpu_very_hot_limit_cpu {
 			trip = <&cpu_very_hot>;
-			cooling-device = <&cpu0 5 THERMAL_NO_LIMIT>,
+			cooling-device = <&fan 3 3>,
+                             <&cpu0 5 THERMAL_NO_LIMIT>,
                              <&cpu1 5 THERMAL_NO_LIMIT>,
                              <&cpu2 5 THERMAL_NO_LIMIT>,
                              <&cpu3 5 THERMAL_NO_LIMIT>;
 		};
+        cpu_extreme_limit_cpu {
+			trip = <&cpu_extreme>;
+			cooling-device = <&fan 3 3>,
+                             <&cpu0 5 THERMAL_NO_LIMIT>,
+                             <&cpu1 5 THERMAL_NO_LIMIT>,
+                             <&cpu2 5 THERMAL_NO_LIMIT>,
+                             <&cpu3 5 THERMAL_NO_LIMIT>;
+        };
 	};
 };
 
@@ -382,6 +415,12 @@
     pwm0_pins: pwm0 {
         pins = "PA5";
         function = "pwm0";
+    };
+
+    gpiog11_pwm_pins: gpio-pwm-pins {
+        pins = "PG11";
+        function = "gpio_out";
+        bias-pull-down;
     };
 };
 
@@ -548,10 +587,16 @@
 };
 
 &codec {
+    compatible = "allwinner,sun8i-h3-codec";
+    #sound-dai-cells = <0>;
     allwinner,audio-routing =
         "Line Out", "LINEOUT",
         "MIC1", "Mic",
         "Mic",  "MBIAS";
+    status = "okay";
+};
+
+&codec_analog {
     status = "okay";
 };
 
